@@ -6,21 +6,23 @@ module.exports = NodeHelper.create({
     console.log('MMM-OneBusAway helper started...');
   },
 
-  getBusesInfo: function (stopId) {
+  getBusesInfo: function (stopIds) {
     var self = this;
     //TODO update api key with a nonTEST one.
-    var url = "http://api.pugetsound.onebusaway.org/api/where/arrivals-and-departures-for-stop/" + stopId + ".json?key=TEST";
-    request({ url: url, method: 'GET' }, function (error, response, body) {
-      if (!error && response.statusCode == 200) {
-        var result = JSON.parse(body);
-        var arrivalsAndDepartures = result['data']['entry']['arrivalsAndDepartures']
-        console.log("Got arrivals and departures data, size count:" + arrivalsAndDepartures.length);
-        self.sendSocketNotification('BUSES_INFO', arrivalsAndDepartures);
-      }
-      else {
-        console.log("ERROR while getting the url" + error);
-      }
-    });
+    for (let route of stopIds) {
+      let stopId = route['stopId']
+      var url = `http://api.pugetsound.onebusaway.org/api/where/arrivals-and-departures-for-stop/${stopId}.json?key=TEST`;
+      request({ url: url, method: 'GET' }, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+          var result = JSON.parse(body);
+          var arrivalsAndDepartures = result['data']['entry']['arrivalsAndDepartures']
+          console.log(`Got arrivals and departures data for ${stopId}, size count:` + arrivalsAndDepartures.length);
+          self.sendSocketNotification('BUSES_INFO', {stopId: stopId , data: arrivalsAndDepartures});
+        } else {
+          console.log(`ERROR while getting the url ${url} ` + error);
+        }
+      });
+    }
   },
 
   //Subclass socketNotificationReceived received.
@@ -29,5 +31,4 @@ module.exports = NodeHelper.create({
       this.getBusesInfo(payload);
     }
   }
-
 });

@@ -1,13 +1,17 @@
 "use strict";
 
 Module.register("MMM-OneBusAway", {
-    result: [],
+    result: {},
     // Default module config.
     defaults: {
-        stopId: "1_2672",
         maxResults: 5,
         fadeSpeed: 1000 * 60, // update every minute
-        buses: []
+        stopIds: [
+            {
+                stopId: "",
+                buses: []
+            }
+        ]
     },
 
     // Override dom generator.
@@ -18,20 +22,24 @@ Module.register("MMM-OneBusAway", {
             var loadingMessage = document.createElement("span");
             loadingMessage.innerHTML = "Checking Bus status...";
             wrapper.appendChild(loadingMessage);
-        } else if (this.result.length == 0) { //No buses right now
+        } else if (Object.keys(this.result).length == 0) { //No buses right now
             var noBuses = document.createElement("span");
             noBuses.innerHTML = "No bus departures soon.";
             wrapper.appendChild(noBuses);
         } else { //extract times of arrival for the buses
-            var validResults = 0;
-            for (var departureIndex = 0; departureIndex < this.result.length && validResults < this.config.maxResults; departureIndex++) {
-                var departureDetails = this.result[departureIndex]
-                if (this.config.buses.indexOf(departureDetails['routeId']) != -1){
-                    var busShortName = departureDetails['routeShortName'];
-                    var busDepartureTimeStamp = departureDetails['scheduledArrivalTime'];
-                    var busEntry = this.getBusEntry(busShortName, busDepartureTimeStamp);
-                    wrapper.appendChild(busEntry);
-                    validResults++;
+            for (let stopId of this.config.stopIds) {
+                let stopDetails = this.result[stopId.stopId] || []
+                var validResults = 0;
+                for (var departureIndex = 0; departureIndex < stopDetails.length && validResults < this.config.maxResults; departureIndex++) {
+                    var departureDetails = stopDetails[departureIndex]
+                    //if (this.config.buses.indexOf(departureDetails['routeId']) != -1){
+                    if (stopId.buses.indexOf(departureDetails['routeId']) != -1){
+                        var busShortName = departureDetails['routeShortName'];
+                        var busDepartureTimeStamp = departureDetails['scheduledArrivalTime'];
+                        var busEntry = this.getBusEntry(busShortName, busDepartureTimeStamp);
+                        wrapper.appendChild(busEntry);
+                        validResults++;
+                    }
                 }
             }
         }
@@ -75,13 +83,16 @@ Module.register("MMM-OneBusAway", {
     },
 
     getBusesInfo: function () {
-        this.sendSocketNotification('GET_BUSES_INFO', this.config.stopId);
+        this.sendSocketNotification('GET_BUSES_INFO', this.config.stopIds);
     },
 
     socketNotificationReceived: function (notification, payload) {
         if (notification === "BUSES_INFO") {
             this.hasLoaded = true;
-            this.result = payload;
+            let stopId = payload.stopId;
+            console.log(`setting stopId ${stopId}`)
+            let data = payload.data;
+            this.result[stopId] = data;
             this.updateDom();
         }
     },
