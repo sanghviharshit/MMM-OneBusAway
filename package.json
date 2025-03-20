@@ -1,0 +1,21 @@
+{
+  "name": "mmm-onebusaway",
+  "version": "1.0.0",
+  "description": "",
+  "main": "MMM-OneBusAway.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sanghviharshit/MMM-OneBusAway.git"
+  },
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/sanghviharshit/MMM-OneBusAway/issues"
+  },
+  "homepage": "https://github.com/sanghviharshit/MMM-OneBusAway#readme",
+  "dependencies": {
+    "request": "^2.88.2"
+  }
+}
